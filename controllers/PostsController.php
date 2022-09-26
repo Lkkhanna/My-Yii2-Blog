@@ -2,8 +2,11 @@
 
 namespace app\controllers;
 
+use app\models\Categories;
+use app\models\PostCategoriesMapping;
 use app\models\Posts;
 use app\models\PostsSearch;
+use Exception;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -82,29 +85,38 @@ class PostsController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Posts();
-
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post())) {
-                $model->image = WebUploadedFile::getInstance($model,'image');
-
-                $fileName = time().'.'.$model->image->extension; 
-    
-                $model->image->saveAs('uploads/'.$fileName);
-                
-                $model->image = $fileName;
-
-                $model->save();
-
-                return $this->redirect(['view', 'slug' => $model->slug]);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            $model = new Posts();
+            if ($this->request->isPost) {
+                if ($model->load($this->request->post())) {
+                    // Upload Image
+                    $model->image = WebUploadedFile::getInstance($model,'image');
+                    $fileName = time().'.'.$model->image->extension; 
+                    $model->image->saveAs('uploads/'.$fileName);
+                    $model->image = $fileName;
+                    // Insert Post data
+                    $model->save();
+                    // Insert category id in mapping table
+                    foreach($_POST['Posts']['categories'] as $val) {
+                        $post_categories = new PostCategoriesMapping();
+                        $post_categories->post_id = $model->id;
+                        $post_categories->category_id = $val;
+                        $post_categories->save();
+                    }
+                    $transaction->commit();
+                    return $this->redirect(['view', 'slug' => $model->slug]);
+                }
+            } else {
+                $model->loadDefaultValues();
             }
-        } else {
-            $model->loadDefaultValues();
+            return $this->render('create', [
+                'model' => $model,
+            ]);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
         }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
     }
 
     /**
@@ -120,27 +132,35 @@ class PostsController extends Controller
         if ($model->created_by !== Yii::$app->user->id){
             throw new ForbiddenHttpException("You do not have permission to edit this article");
         }
-        
-        if ($this->request->isPost && $model->load($this->request->post())) {
-
-            dd($model->image);
-
-            $model->image = WebUploadedFile::getInstance($model,'image');
-
-            $fileName = time().'.'.$model->image->extension; 
-
-            $model->image->saveAs('uploads/'.$fileName);
-            
-            $model->image = $fileName;
-
-            $model->save();
-
-            return $this->redirect(['view', 'slug' => $model->slug]);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            if ($this->request->isPost && $model->load($this->request->post())) {
+                // Upload Image
+                $model->image = WebUploadedFile::getInstance($model,'image');
+                $fileName = time().'.'.$model->image->extension; 
+                $model->image->saveAs('uploads/'.$fileName);
+                $model->image = $fileName;
+                // Save updated data
+                $model->save();
+                // Deleting existing values
+                PostCategoriesMapping::deleteAll(['post_id' => $model->id]);
+                // Insert Category id in mapping table
+                foreach($_POST['Posts']['categories'] as $val) {
+                    $post_categories = new PostCategoriesMapping();
+                    $post_categories->post_id = $model->id;
+                    $post_categories->category_id = $val;
+                    $post_categories->save();
+                }
+                $transaction->commit();
+                return $this->redirect(['view', 'slug' => $model->slug]);
+            }
+            return $this->render('update', [
+                'model' => $model,
+            ]);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
         }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
     }
 
     /**

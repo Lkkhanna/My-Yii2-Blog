@@ -1,9 +1,11 @@
 <?php
 
 use app\models\Categories;
+use app\models\PostCategoriesMapping;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use kartik\select2\Select2;
 
 /** @var yii\web\View $this */
 /** @var app\models\Posts $model */
@@ -18,11 +20,14 @@ use yii\widgets\ActiveForm;
 
     <br>
 
-    <?= $form->field($model, 'category_id')->dropDownList(
-        ArrayHelper::map(Categories::find()->all(), 'id', 'title'),
-        ['prompt' => 'Select Category'], 
-        ['options'=>[$model->category_id=>['Selected'=>true]]],
-    ) ?>
+    <?= $form->field($model, 'categories')->widget(Select2::classname(), [
+        'data' => ArrayHelper::map(Categories::find()->all(), 'id', 'title'),
+        'language' => 'en',
+        'options' => ['placeholder' => 'Select Categories', 'multiple' => true],
+        'pluginOptions' => [
+            'allowClear' => true
+        ],
+    ]); ?>
 
     <br>
 

@@ -6,7 +6,7 @@ use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
-use yii\web\UploadedFile;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "posts".
@@ -62,7 +62,6 @@ class Posts extends \yii\db\ActiveRecord
             [['title', 'slug'], 'string', 'max' => 255],
             [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
             [['image'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg'],
-            [['category_id'], 'required'],
         ];
     }
 
@@ -92,5 +91,11 @@ class Posts extends \yii\db\ActiveRecord
     public function getCreatedBy()
     {
         return $this->hasOne(User::class, ['id' => 'created_by']);
+    }
+
+    public function getCategories()
+    {
+            $listCategory   = Categories::find()->select('id,title')->all();
+            return ArrayHelper::map( $listCategory,'id','title');
     }
 }
