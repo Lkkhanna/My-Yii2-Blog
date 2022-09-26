@@ -2,7 +2,6 @@
 
 namespace app\controllers;
 
-use app\models\Categories;
 use app\models\PostCategoriesMapping;
 use app\models\Posts;
 use app\models\PostsSearch;

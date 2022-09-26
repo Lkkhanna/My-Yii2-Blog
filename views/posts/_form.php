@@ -18,8 +18,6 @@ use kartik\select2\Select2;
     
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 
-    <br>
-
     <?= $form->field($model, 'categories')->widget(Select2::classname(), [
         'data' => ArrayHelper::map(Categories::find()->all(), 'id', 'title'),
         'language' => 'en',
@@ -29,21 +27,13 @@ use kartik\select2\Select2;
         ],
     ]); ?>
 
-    <br>
-
     <?= $form->field($model, 'slug')->textInput(['maxlength' => true]) ?>
 
-    <br>
-
     <?= $form->field($model, 'body')->textarea(['rows' => 5]) ?>
-
-    <br>
 
     <?= $form->field($model, 'image')->fileInput(
         ['value' => $model->image],
     ) ?>
-
-    <br>
 
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
