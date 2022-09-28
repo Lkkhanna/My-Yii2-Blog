@@ -18,7 +18,7 @@ class m220922_143425_users extends Migration
             'password' => $this->string(255)->notNull(),
             'auth_key' => $this->string(255)->notNull(),
             'access_token' => $this->string(255)->notNull(),
-            'created_at' => $this->integer()
+            'created_at' => $this->dateTime()
         ]);
     }
 

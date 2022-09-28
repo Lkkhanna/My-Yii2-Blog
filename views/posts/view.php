@@ -41,8 +41,10 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
         <hr>
         <div>
-            <u><h4> Post Image </h4></u>
-            <?= Html::img('@web/uploads/'. $model->image, ['alt'=>'Image not available', 'class'=>'thing']);?>
+            <u><h4> Post Image(s) </h4></u>
+            <?php foreach($images as $val) {?>
+            <?= Html::img('@web/uploads/'. $val->image, ['alt'=>'Image not available', 'class'=>'thing']);?>
+            <?php } ?>
         </div>
         
     </div>

@@ -29,7 +29,9 @@ class PostCategoriesMapping extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['post_id', 'category_id', 'created_at', 'updated_at'], 'integer'],
+            [['post_id', 'category_id'], 'integer'],
+            [['created_at'], 'safe'],
+            ['created_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
         ];
     }
 
@@ -44,6 +46,7 @@ class PostCategoriesMapping extends \yii\db\ActiveRecord
             'category_id' => 'Category ID',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
+            // 'created_by' => 'Created By'
         ];
     }
 }

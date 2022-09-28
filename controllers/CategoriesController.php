@@ -4,10 +4,13 @@ namespace app\controllers;
 
 use app\models\Categories;
 use app\models\CategorySearch;
+use Exception;
+use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\ForbiddenHttpException;
 
 /**
  * CategoriesController implements the CRUD actions for Categories model.
@@ -79,19 +82,29 @@ class CategoriesController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Categories();
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            $model = new Categories();
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+            if ($this->request->isPost && $model->load($this->request->post())) {
+                $model->created_at = date('Y-m-d h:i:s');
+                $model->created_by = Yii::$app->user->id;
+                if ($model->save()) {
+                    $transaction->commit();
+                    return $this->redirect(['view', 'id' => $model->id]);
+                }
+            } else {
+                $model->loadDefaultValues();
             }
-        } else {
-            $model->loadDefaultValues();
-        }
 
-        return $this->render('create', [
-            'model' => $model,
-        ]);
+            return $this->render('create', [
+                'model' => $model,
+            ]);
+
+        } catch (Exception $e) {dd($e);
+            $transaction->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -104,9 +117,12 @@ class CategoriesController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        // $model->updated_at = date('Y-m-d h:i:s');
+        if ($this->request->isPost && $model->load($this->request->post())) {
+            $model->updated_at = date('Y-m-d h:i:s');
+            if ($model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
 
         return $this->render('update', [
@@ -123,12 +139,15 @@ class CategoriesController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
+        $model = $this->findModel($id);
+        if ($model->created_by !== Yii::$app->user->id){
+            throw new ForbiddenHttpException("You do not have permission to delete this Category");
+        }
+        $model->delete();
         return $this->redirect(['index']);
     }
 
-    /**
+    /**$model->delete();
      * Finds the Categories model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID

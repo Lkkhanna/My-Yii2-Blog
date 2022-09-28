@@ -36,7 +36,7 @@ class Posts extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            TimestampBehavior::class,
+            // TimestampBehavior::class,
             [
                 'class' => BlameableBehavior::class,
                 'updatedByAttribute' => false
@@ -56,12 +56,17 @@ class Posts extends \yii\db\ActiveRecord
     {
         return [
             [['title', 'body'], 'required'],
-            [['body'], 'string'],
+            [['body'], 'string', 'min' => 5],
             [['created_at', 'updated_at'], 'safe'],
+            ['created_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
+            ['updated_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
             [['created_by'], 'integer'],
-            [['title', 'slug'], 'string', 'max' => 255],
+            [['title'], 'string', 'min' => 2, 'max' => 50],
+            [['slug'], 'string', 'min' => 2, 'max' => 100],
+            [['title', 'slug'], 'unique'],
             [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
-            [['image'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg'],
+            [['status'], 'required'],
+            // [['images'], 'file', 'skipOnEmpty' => false, 'maxFiles' => 5, 'extensions' => 'png, jpg, jpeg'],
         ];
     }
 
@@ -78,8 +83,7 @@ class Posts extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'created_by' => 'Created By',
-            'image' => 'Post Image',
-            'category_id' => 'Category'
+            'images' => 'Post Images',
         ];
     }
 
@@ -95,7 +99,20 @@ class Posts extends \yii\db\ActiveRecord
 
     public function getCategories()
     {
-            $listCategory   = Categories::find()->select('id,title')->all();
-            return ArrayHelper::map( $listCategory,'id','title');
+        $listCategory = Categories::find()->select('id,title')->all();
+        return ArrayHelper::map( $listCategory,'id','title');
+    }
+
+    public function getImage()
+    {
+        $listCategory = PostImages::find()->select('post_id,image')->all();
+        return ArrayHelper::map($listCategory,'post_id','image');
+    }
+
+    public static function getImagesOfPost($slug)
+    {
+        $post = self::findOne(['slug' => $slug]);
+        // dd($post);
+        return PostImages::find()->where(['post_id' => $post->id])->all();
     }
 }

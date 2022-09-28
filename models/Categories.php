@@ -30,9 +30,13 @@ class Categories extends \yii\db\ActiveRecord
     {
         return [
             [['title', 'body'], 'required'],
-            [['body'], 'string'],
-            [['created_at', 'updated_at'], 'integer'],
-            [['title'], 'string', 'max' => 255],
+            [['body'], 'string','min' => 2],
+            [['created_at', 'updated_at'], 'safe'],
+            ['created_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
+            ['updated_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
+            [['title'], 'string', 'min' => 2, 'max' => 50],
+            [['title'], 'unique'],
+            [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
         ];
     }
 
@@ -48,5 +52,15 @@ class Categories extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
+    }
+
+    /**
+     * Gets query for [[CreatedBy]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCreatedBy()
+    {
+        return $this->hasOne(User::class, ['id' => 'created_by']);
     }
 }

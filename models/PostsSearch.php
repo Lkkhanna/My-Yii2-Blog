@@ -40,7 +40,7 @@ class PostsSearch extends Posts
      */
     public function search($params)
     {
-        $query = Posts::find()->orderBy('created_at DESC');
+        $query = Posts::find()->where(['status' => 1])->orderBy('created_at DESC');
 
         // add conditions that should always apply here
 

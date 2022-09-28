@@ -3,15 +3,16 @@
 namespace app\controllers;
 
 use app\models\PostCategoriesMapping;
+use app\models\PostImages;
 use app\models\Posts;
 use app\models\PostsSearch;
 use Exception;
 use Yii;
 use yii\filters\AccessControl;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\UploadedFile as WebUploadedFile;
 
 /**
@@ -72,8 +73,11 @@ class PostsController extends Controller
      */
     public function actionView($slug)
     {
+        $images = Posts::getImagesOfPost($slug);
+        // dd($images);
         return $this->render('view', [
             'model' => $this->findModel($slug),
+            'images' => $images
         ]);
     }
 
@@ -89,30 +93,38 @@ class PostsController extends Controller
             $model = new Posts();
             if ($this->request->isPost) {
                 if ($model->load($this->request->post())) {
-                    // Upload Image
-                    $model->image = WebUploadedFile::getInstance($model,'image');
-                    $fileName = time().'.'.$model->image->extension; 
-                    $model->image->saveAs('uploads/'.$fileName);
-                    $model->image = $fileName;
+                    $model->created_at = date('Y-m-d h:m:s');
                     // Insert Post data
-                    $model->save();
-                    // Insert category id in mapping table
-                    foreach($_POST['Posts']['categories'] as $val) {
-                        $post_categories = new PostCategoriesMapping();
-                        $post_categories->post_id = $model->id;
-                        $post_categories->category_id = $val;
-                        $post_categories->save();
+                    if ($model->save()) {
+                        // Upload Image
+                        $names = WebUploadedFile::getInstances($model, 'image');
+                        foreach ($names as $name) {
+                            $fileName = time() . '.' . $name->extension;
+                            $name->saveAs('uploads/' . $fileName);
+                            $post_images = new PostImages();
+                            $post_images->post_id = $model->id;
+                            $post_images->image = $fileName;
+                            $post_images->save();
+                        }
+                        // Insert Category id in mapping table
+                        foreach ($_POST['Posts']['categories'] as $val) {
+                            $post_categories = new PostCategoriesMapping();
+                            $post_categories->post_id = $model->id;
+                            $post_categories->category_id = $val;
+                            $post_categories->created_at = date('Y-m-d h:m:s');
+                            $post_categories->save();
+                        }
+                        $transaction->commit();
+                        return $this->redirect(['view', 'slug' => $model->slug]);
                     }
-                    $transaction->commit();
-                    return $this->redirect(['view', 'slug' => $model->slug]);
                 }
-            } else {
+            } else {dd(0);
                 $model->loadDefaultValues();
-            }
+            }dd(1);
             return $this->render('create', [
                 'model' => $model,
             ]);
-        } catch (Exception $e) {
+        } catch (Exception $e) {dd(2);
             $transaction->rollBack();
             throw $e;
         }
@@ -129,32 +141,49 @@ class PostsController extends Controller
     {
         $model = $this->findModel($slug);
         if ($model->created_by !== Yii::$app->user->id){
-            throw new ForbiddenHttpException("You do not have permission to edit this article");
+            throw new ForbiddenHttpException("You do not have permission to edit this Post");
         }
         try {
             $transaction = Yii::$app->db->beginTransaction();
             if ($this->request->isPost && $model->load($this->request->post())) {
-                // Upload Image
-                $model->image = WebUploadedFile::getInstance($model,'image');
-                $fileName = time().'.'.$model->image->extension; 
-                $model->image->saveAs('uploads/'.$fileName);
-                $model->image = $fileName;
+                $model->updated_at = date('Y-m-d h:m:s');
                 // Save updated data
-                $model->save();
-                // Deleting existing values
-                PostCategoriesMapping::deleteAll(['post_id' => $model->id]);
-                // Insert Category id in mapping table
-                foreach($_POST['Posts']['categories'] as $val) {
-                    $post_categories = new PostCategoriesMapping();
-                    $post_categories->post_id = $model->id;
-                    $post_categories->category_id = $val;
-                    $post_categories->save();
+                if ($model->save()) {
+                    // Deleting existing images
+                    PostImages::deleteAll(['post_id' => $model->id]);
+                    // Upload Image
+                    $names = WebUploadedFile::getInstances($model, 'image');
+                    foreach ($names as $name) {
+                        $fileName = time() . '.' . $name->extension;
+                        $name->saveAs('uploads/' . $fileName);
+                        $post_images = new PostImages();
+                        $post_images->post_id = $model->id;
+                        $post_images->image = $fileName;
+                        $post_images->save();
+                    }
+                    // Deleting existing categories
+                    PostCategoriesMapping::deleteAll(['post_id' => $model->id]);
+                    // Insert Category id in mapping table
+                    foreach ($_POST['Posts']['categories'] as $val) {
+                        $post_categories = new PostCategoriesMapping();
+                        $post_categories->post_id = $model->id;
+                        $post_categories->category_id = $val;
+                        $post_categories->created_at = date('Y-m-d h:m:s');
+                        $post_categories->save();
+                    }
+                    $transaction->commit();
+                    return $this->redirect(['view', 'slug' => $model->slug]);
                 }
-                $transaction->commit();
-                return $this->redirect(['view', 'slug' => $model->slug]);
             }
+            $x = PostCategoriesMapping::find()->where(['post_id' => $model->id])->all();
+            
+            foreach ($x as $val) {
+                $categories[$val->category_id] = array("selected"=>true);
+            }
+
             return $this->render('update', [
                 'model' => $model,
+                'categories' => $categories
             ]);
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -172,8 +201,8 @@ class PostsController extends Controller
     public function actionDelete($slug)
     {
         $model = $this->findModel($slug);
-        if ($model->created_by !== Yii::$app->user->id){
-            throw new ForbiddenHttpException("You do not have permission to delete this article");
+        if ($model->created_by !== Yii::$app->user->id) {
+            throw new ForbiddenHttpException("You do not have permission to delete this Post");
         }
         $model->delete();
 
