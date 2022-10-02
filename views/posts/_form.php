@@ -1,13 +1,13 @@
 <?php
 
 use app\models\Categories;
-use app\models\PostCategoriesMapping;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use kartik\select2\Select2;
 
 const STATUSES = ['' => 'Select', 0 => 'Draft', 1 => 'Published', 2 => 'In Review'];
+
 /** @var yii\web\View $this */
 /** @var app\models\Posts $model */
 /** @var yii\widgets\ActiveForm $form */

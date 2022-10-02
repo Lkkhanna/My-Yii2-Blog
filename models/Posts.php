@@ -66,7 +66,7 @@ class Posts extends \yii\db\ActiveRecord
             [['title', 'slug'], 'unique'],
             [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
             [['status'], 'required'],
-            // [['images'], 'file', 'skipOnEmpty' => false, 'maxFiles' => 5, 'extensions' => 'png, jpg, jpeg'],
+            // [['image'], 'file', 'skipOnEmpty' => false, 'maxFiles' => 5, 'extensions' => 'png, jpg, jpeg'],
         ];
     }
 
@@ -112,7 +112,35 @@ class Posts extends \yii\db\ActiveRecord
     public static function getImagesOfPost($slug)
     {
         $post = self::findOne(['slug' => $slug]);
-        // dd($post);
-        return PostImages::find()->where(['post_id' => $post->id])->all();
+        if (!empty($post)) {
+            return PostImages::find()->where(['post_id' => $post->id])->all();
+        }
+        return false;
     }
+
+    public static function getPostComments($slug)
+    {
+        $post = self::findOne(['slug' => $slug]);
+        if (!empty($post)) {
+            return PostComments::find()->where(['post_id' => $post->id])->all();
+        }
+        return false;
+    }
+
+    public static function getCommentReplies($comment_id)
+    {
+        if (!empty($comment_id)) {
+            return PostCommentReplies::find()->where(['comment_id' => $comment_id])->all();
+        }
+        return false;
+    }
+
+    public static function getSubReplies($reply_id)
+    {
+        if (!empty($reply_id)) {
+            return SubReplies::find()->where(['reply_id' => $reply_id])->all();
+        }
+        return false;
+    }
+    
 }

@@ -40,7 +40,8 @@ class PostsSearch extends Posts
      */
     public function search($params)
     {
-        $query = Posts::find()->where(['status' => 1])->orderBy('created_at DESC');
+        $status = $params['PostsSearch']['status'] ?? 1;
+        $query = Posts::find()->where(['status' => $status])->orderBy('created_at DESC');
 
         // add conditions that should always apply here
 
@@ -66,7 +67,7 @@ class PostsSearch extends Posts
 
         $query->andFilterWhere(['like', 'title', $this->title])
             ->andFilterWhere(['like', 'slug', $this->slug])
-            ->andFilterWhere(['like', 'body', $this->body]);
+            ->andFilterWhere(['status', 'status', $this->status]);
 
         return $dataProvider;
     }

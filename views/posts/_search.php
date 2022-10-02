@@ -3,6 +3,8 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
+const STATUSES = ['' => 'Select', 0 => 'Draft', 1 => 'Published', 2 => 'In Review'];
+
 /** @var yii\web\View $this */
 /** @var app\models\PostsSearch $model */
 /** @var yii\widgets\ActiveForm $form */
@@ -15,23 +17,14 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <!-- <?= $form->field($model, 'id') ?> -->
+    <?= $form->field($model, 'status')->dropDownList(STATUSES) ?>
 
-    <?= $form->field($model, 'title') ?>
-
-    <!-- <?= $form->field($model, 'slug') ?> -->
-
-    <!-- <?= $form->field($model, 'body') ?> -->
-
-    <!-- <?= $form->field($model, 'created_at') ?> -->
-
-    <?php // echo $form->field($model, 'updated_at') ?>
-
-    <?php // echo $form->field($model, 'created_by') ?>
+    <br>
 
     <div class="form-group">
         <?= Html::submitButton('Search', ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton('Reset', ['class' => 'btn btn-outline-secondary']) ?>
+        <!-- <?= Html::resetButton('Reset', ['class' => 'btn btn-outline-secondary']) ?> -->
+        <?= Html::a('Reset', ['/'], ['class' => 'btn btn-outline-secondary']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

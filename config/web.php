@@ -48,8 +48,9 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                'posts/<action:(create|index|update|delete)>' => 'posts/<action>',
-                'posts/<slug>' => 'posts/view'
+                'posts/<action:(create|index|update|delete|comments|reply|sub-reply)>' => 'posts/<action>',
+                'posts/<slug>' => 'posts/view',
+                'posts/comments' => 'comment'
             ],
         ],
         'assetManager' => [

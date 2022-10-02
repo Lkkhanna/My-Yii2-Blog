@@ -3,9 +3,12 @@
 namespace app\controllers;
 
 use app\models\PostCategoriesMapping;
+use app\models\PostCommentReplies;
+use app\models\PostComments;
 use app\models\PostImages;
 use app\models\Posts;
 use app\models\PostsSearch;
+use app\models\SubReplies;
 use Exception;
 use Yii;
 use yii\filters\AccessControl;
@@ -73,11 +76,12 @@ class PostsController extends Controller
      */
     public function actionView($slug)
     {
+        $comments = Posts::getPostComments($slug);
         $images = Posts::getImagesOfPost($slug);
-        // dd($images);
         return $this->render('view', [
             'model' => $this->findModel($slug),
-            'images' => $images
+            'images' => $images,
+            'comments' => $comments
         ]);
     }
 
@@ -118,9 +122,9 @@ class PostsController extends Controller
                         return $this->redirect(['view', 'slug' => $model->slug]);
                     }
                 }
-            } else {dd(0);
+            } else {
                 $model->loadDefaultValues();
-            }dd(1);
+            }
             return $this->render('create', [
                 'model' => $model,
             ]);
@@ -223,5 +227,98 @@ class PostsController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * Add comment in a post.
+     *
+     * @return boolean
+     */
+    public function actionComments($slug)
+    {
+        $model = $this->findModel($slug);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            if ($this->request->isPost) {
+                $comment = new PostComments();
+                $comment->post_id = $model->id;
+                $comment->comment = $_POST['Posts']['comment'];
+                $comment->created_by = Yii::$app->user->id;
+                $comment->created_at = date('Y-m-d h:m:s');
+                // Save comment
+                if ($comment->save()) {
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', "Comment added successfully.");
+                    return $this->redirect(['view', 'slug' => $model->slug]);
+                }
+            }
+            Yii::$app->session->setFlash('error', "Some error occurred. Comment not added.");
+            return $this->redirect(['view', 'slug' => $model->slug]);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Add Reply on a comment.
+     *
+     * @return boolean
+     */
+    public function actionReply($slug)
+    {
+        $model = $this->findModel($slug);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            if ($this->request->isPost) {
+                $reply = new PostCommentReplies();
+                $reply->comment_id = $this->request->post()['Posts']['comment_id'];
+                $reply->reply = $_POST['Posts']['reply'];
+                $reply->created_by = Yii::$app->user->id;
+                $reply->created_at = date('Y-m-d h:m:s');
+                // Save reply
+                if ($reply->save()) {
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', "Reply added successfully.");
+                    return $this->redirect(['view', 'slug' => $model->slug]);
+                }
+            }
+            Yii::$app->session->setFlash('error', "Some error occurred. Reply not added.");
+            return $this->redirect(['view', 'slug' => $model->slug]);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Add Sub Reply on a Reply.
+     *
+     * @return boolean
+     */
+    public function actionSubReply($slug)
+    {
+        $model = $this->findModel($slug);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            if ($this->request->isPost) {
+                $sub_reply = new SubReplies();
+                $sub_reply->reply_id = $this->request->post()['Posts']['reply_id'];
+                $sub_reply->reply_message = $_POST['Posts']['sub_reply'];
+                $sub_reply->created_by = Yii::$app->user->id;
+                $sub_reply->created_at = date('Y-m-d h:m:s');
+                // Save sub reply
+                if ($sub_reply->save()) {
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', "Sub Reply added successfully.");
+                    return $this->redirect(['view', 'slug' => $model->slug]);
+                }
+            }
+            Yii::$app->session->setFlash('error', "Some error occurred. Sub Reply not added.");
+            return $this->redirect(['view', 'slug' => $model->slug]);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
     }
 }
