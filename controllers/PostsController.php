@@ -128,7 +128,7 @@ class PostsController extends Controller
             return $this->render('create', [
                 'model' => $model,
             ]);
-        } catch (Exception $e) {dd(2);
+        } catch (Exception $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -232,7 +232,7 @@ class PostsController extends Controller
     /**
      * Add comment in a post.
      *
-     * @return boolean
+     * @return string
      */
     public function actionComments($slug)
     {
@@ -263,7 +263,7 @@ class PostsController extends Controller
     /**
      * Add Reply on a comment.
      *
-     * @return boolean
+     * @return string
      */
     public function actionReply($slug)
     {
@@ -294,7 +294,7 @@ class PostsController extends Controller
     /**
      * Add Sub Reply on a Reply.
      *
-     * @return boolean
+     * @return string
      */
     public function actionSubReply($slug)
     {

@@ -34,7 +34,8 @@ const STATUSES = ['' => 'Select', 0 => 'Draft', 1 => 'Published', 2 => 'In Revie
 
     <?= $form->field($model, 'image[]')->fileInput([
         'multiple' => true,
-        'accept' => 'image/*'
+        'accept' => 'image/*',
+        'value' => ''
     ]) ?>
 
     <div class="form-group">

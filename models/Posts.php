@@ -97,18 +97,14 @@ class Posts extends \yii\db\ActiveRecord
         return $this->hasOne(User::class, ['id' => 'created_by']);
     }
 
+    /** Get all categories */
     public function getCategories()
     {
         $listCategory = Categories::find()->select('id,title')->all();
         return ArrayHelper::map( $listCategory,'id','title');
     }
 
-    public function getImage()
-    {
-        $listCategory = PostImages::find()->select('post_id,image')->all();
-        return ArrayHelper::map($listCategory,'post_id','image');
-    }
-
+    /** Get Images by post_id */
     public static function getImagesOfPost($slug)
     {
         $post = self::findOne(['slug' => $slug]);
@@ -118,6 +114,7 @@ class Posts extends \yii\db\ActiveRecord
         return false;
     }
 
+    /** Get Comments by post_id */
     public static function getPostComments($slug)
     {
         $post = self::findOne(['slug' => $slug]);
@@ -127,6 +124,7 @@ class Posts extends \yii\db\ActiveRecord
         return false;
     }
 
+    /** Get Replies by comment_id */
     public static function getCommentReplies($comment_id)
     {
         if (!empty($comment_id)) {
@@ -135,6 +133,7 @@ class Posts extends \yii\db\ActiveRecord
         return false;
     }
 
+    /** Get Sub Replies by reply_id */
     public static function getSubReplies($reply_id)
     {
         if (!empty($reply_id)) {
