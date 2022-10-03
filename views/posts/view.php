@@ -55,6 +55,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= Html::img('@web/uploads/' . $val->image, ['alt' => 'Image not available', 'class' => 'thing']); ?>
             <?php } ?>
         </div>
+        <?php if (!empty($comments)) { ?>
         <hr>
         <div>
             <u>
@@ -97,6 +98,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <hr>
             <?php } ?>
         </div>
+        <?php } ?>
     </div>
 
     <!-- Comments Modal -->
