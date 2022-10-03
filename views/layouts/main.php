@@ -30,6 +30,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 <?php $this->beginBody() ?>
 
 <header id="header">
+<?php $this->registerJs('$(".alert").animate({opacity: 1.0}, 2000).fadeOut("slow");'); ?>
     <?php
     NavBar::begin([
         'brandLabel' => 'Blog',

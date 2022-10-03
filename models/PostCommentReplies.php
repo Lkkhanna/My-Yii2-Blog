@@ -32,7 +32,7 @@ class PostCommentReplies extends \yii\db\ActiveRecord
             [['comment_id', 'reply'], 'required'],
             [['comment_id', 'created_by'], 'integer'],
             [['created_at'], 'safe'],
-            [['reply'], 'string', 'max' => 255],
+            [['reply'], 'string', 'min' => 2, 'max' => 100],
         ];
     }
 

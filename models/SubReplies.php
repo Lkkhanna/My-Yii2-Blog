@@ -32,7 +32,8 @@ class SubReplies extends \yii\db\ActiveRecord
             [['reply_id', 'reply_message'], 'required'],
             [['reply_id', 'created_by'], 'integer'],
             [['created_at'], 'safe'],
-            [['reply_message'], 'string', 'max' => 255],
+            ['created_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
+            [['reply_message'], 'string', 'min'=> 2, 'max' => 100],
         ];
     }
 

@@ -21,11 +21,13 @@ $this->params['breadcrumbs'][] = $this->title;
         <p>
             <?= Html::a('Create Posts', ['create'], ['class' => 'btn btn-success']) ?>
         </p>
+        <?php echo $this->render('_search', ['model' => $searchModel]); ?>
+        <br>
+    <?php else : ?>
+        <p>
+            (Login to Create Post)
+        </p>
     <?php endif; ?>
-
-    <?php echo $this->render('_search', ['model' => $searchModel]); ?>
-
-    <br>
     
     <?= ListView::widget([
         'dataProvider' => $dataProvider,

@@ -15,7 +15,7 @@ const STATUSES = ['' => 'Select', 0 => 'Draft', 1 => 'Published', 2 => 'In Revie
 
 <div class="posts-form fw-bolder">
 
-    <?php $form = ActiveForm::begin(['options'=>['enctype'=>'multipart/form-data']]); ?>
+    <?php $form = ActiveForm::begin(['options'=>['enctype'=>'multipart/form-data', 'enableAjaxValidation' => true]]); ?>
     
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 

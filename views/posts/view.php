@@ -31,7 +31,6 @@ $this->params['breadcrumbs'][] = $this->title;
         </p>
     <?php endif; ?>
     <div class='container'>
-        <?php $this->registerJs('$(".alert").animate({opacity: 1.0}, 2000).fadeOut("slow");'); ?>
         <h1><?php echo Html::encode($model->title) ?></h1>
         <p class="text-muted">
             <small>
@@ -55,6 +54,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= Html::img('@web/uploads/' . $val->image, ['alt' => 'Image not available', 'class' => 'thing']); ?>
             <?php } ?>
         </div>
+        <?php if (!empty($comments)) { ?>
         <hr>
         <div>
             <u>
@@ -97,6 +97,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <hr>
             <?php } ?>
         </div>
+        <?php } ?>
     </div>
 
     <!-- Comments Modal -->
