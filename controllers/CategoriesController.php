@@ -82,8 +82,8 @@ class CategoriesController extends Controller
      */
     public function actionCreate()
     {
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            $transaction = Yii::$app->db->beginTransaction();
             $model = new Categories();
 
             if ($this->request->isPost && $model->load($this->request->post())) {
@@ -91,6 +91,7 @@ class CategoriesController extends Controller
                 $model->created_by = Yii::$app->user->id;
                 if ($model->save()) {
                     $transaction->commit();
+                    Yii::$app->session->setFlash('success', "Category created successfully.");
                     return $this->redirect(['view', 'id' => $model->id]);
                 }
             } else {
@@ -101,9 +102,13 @@ class CategoriesController extends Controller
                 'model' => $model,
             ]);
 
-        } catch (Exception $e) {dd($e);
+        } catch (Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Category creation failed.");
+            return $this->render('create', [
+                'model' => $model,
+            ]);
         }
     }
 
@@ -116,18 +121,29 @@ class CategoriesController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
-        // $model->updated_at = date('Y-m-d h:i:s');
-        if ($this->request->isPost && $model->load($this->request->post())) {
-            $model->updated_at = date('Y-m-d h:i:s');
-            if ($model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $model = $this->findModel($id);
+            if ($this->request->isPost && $model->load($this->request->post())) {
+                $model->updated_at = date('Y-m-d h:i:s');
+                if ($model->save()) {
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', "Category updated successfully.");
+                    return $this->redirect(['view', 'id' => $model->id]);
+                }
             }
-        }
 
-        return $this->render('update', [
-            'model' => $model,
-        ]);
+            return $this->render('update', [
+                'model' => $model,
+            ]);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Category updation failed.");
+            return $this->render('update', [
+                'model' => $model,
+            ]);
+        }
     }
 
     /**
@@ -139,12 +155,21 @@ class CategoriesController extends Controller
      */
     public function actionDelete($id)
     {
-        $model = $this->findModel($id);
-        if ($model->created_by !== Yii::$app->user->id){
-            throw new ForbiddenHttpException("You do not have permission to delete this Category");
+        try {
+            $model = $this->findModel($id);
+            if ($model->created_by !== Yii::$app->user->id){
+                throw new ForbiddenHttpException("You do not have permission to delete this Category");
+            }
+            $model->delete();
+            Yii::$app->session->setFlash('success', "Category deleted successfully.");
+            return $this->redirect(['index']);
+        } catch (Exception $e) {
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Category deletion failed.");
+            return $this->render('view', [
+                'model' => $this->findModel($id),
+            ]);
         }
-        $model->delete();
-        return $this->redirect(['index']);
     }
 
     /**$model->delete();

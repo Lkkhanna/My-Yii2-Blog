@@ -32,6 +32,7 @@ class PostComments extends \yii\db\ActiveRecord
             [['post_id', 'comment'], 'required'],
             [['post_id', 'created_by'], 'integer'],
             [['created_at'], 'safe'],
+            ['created_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
             [['comment'], 'string', 'min' => 1, 'max' => 100],
         ];
     }

@@ -32,6 +32,7 @@ class Replies extends \yii\db\ActiveRecord
             [['reply_id', 'reply_message'], 'required'],
             [['reply_id', 'created_by'], 'integer'],
             [['created_at'], 'safe'],
+            ['created_at', 'date', 'format' => 'yyyy-M-d H:m:s'],
             [['reply_message'], 'string', 'max' => 255],
         ];
     }

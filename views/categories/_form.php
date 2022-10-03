@@ -10,7 +10,7 @@ use yii\widgets\ActiveForm;
 
 <div class="categories-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin(['enableAjaxValidation' => true]); ?>
 
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 

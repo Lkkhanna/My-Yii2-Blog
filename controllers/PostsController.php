@@ -92,9 +92,9 @@ class PostsController extends Controller
      */
     public function actionCreate()
     {
+        $transaction = Yii::$app->db->beginTransaction();
+        $model = new Posts();
         try {
-            $transaction = Yii::$app->db->beginTransaction();
-            $model = new Posts();
             if ($this->request->isPost) {
                 if ($model->load($this->request->post())) {
                     $model->created_at = date('Y-m-d h:m:s');
@@ -119,6 +119,7 @@ class PostsController extends Controller
                             $post_categories->save();
                         }
                         $transaction->commit();
+                        Yii::$app->session->setFlash('success', "Post created successfully.");
                         return $this->redirect(['view', 'slug' => $model->slug]);
                     }
                 }
@@ -130,7 +131,11 @@ class PostsController extends Controller
             ]);
         } catch (Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Post creation failed.");
+            return $this->render('create', [
+                'model' => $model,
+            ]);
         }
     }
 
@@ -143,12 +148,18 @@ class PostsController extends Controller
      */
     public function actionUpdate($slug)
     {
+        $transaction = Yii::$app->db->beginTransaction();
         $model = $this->findModel($slug);
         if ($model->created_by !== Yii::$app->user->id){
             throw new ForbiddenHttpException("You do not have permission to edit this Post");
         }
+        /** Get post's categories for dropdown */
+        $category_list = PostCategoriesMapping::find()->where(['post_id' => $model->id])->all();
+        foreach ($category_list as $val) {
+            $categories[$val->category_id] = array("selected"=>true);
+        }
+
         try {
-            $transaction = Yii::$app->db->beginTransaction();
             if ($this->request->isPost && $model->load($this->request->post())) {
                 $model->updated_at = date('Y-m-d h:m:s');
                 // Save updated data
@@ -176,13 +187,9 @@ class PostsController extends Controller
                         $post_categories->save();
                     }
                     $transaction->commit();
+                    Yii::$app->session->setFlash('success', "Post updated successfully.");
                     return $this->redirect(['view', 'slug' => $model->slug]);
                 }
-            }
-            $x = PostCategoriesMapping::find()->where(['post_id' => $model->id])->all();
-            
-            foreach ($x as $val) {
-                $categories[$val->category_id] = array("selected"=>true);
             }
 
             return $this->render('update', [
@@ -191,7 +198,12 @@ class PostsController extends Controller
             ]);
         } catch (Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Post updation failed.");
+            return $this->render('update', [
+                'model' => $model,
+                'categories' => $categories
+            ]);
         }
     }
 
@@ -204,13 +216,22 @@ class PostsController extends Controller
      */
     public function actionDelete($slug)
     {
-        $model = $this->findModel($slug);
-        if ($model->created_by !== Yii::$app->user->id) {
-            throw new ForbiddenHttpException("You do not have permission to delete this Post");
-        }
-        $model->delete();
+        try {
+            $model = $this->findModel($slug);
+            if ($model->created_by !== Yii::$app->user->id) {
+                throw new ForbiddenHttpException("You do not have permission to delete this Post");
+            }
+            $model->delete();
 
-        return $this->redirect(['index']);
+            Yii::$app->session->setFlash('success', "Post deleted successfully.");
+            return $this->redirect(['index']);
+        } catch (Exception $e) {
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Post deletion failed.");
+            return $this->render('view', [
+                'model' => $this->findModel($slug),
+            ]);
+        }
     }
 
     /**
@@ -236,9 +257,9 @@ class PostsController extends Controller
      */
     public function actionComments($slug)
     {
+        $transaction = Yii::$app->db->beginTransaction();
         $model = $this->findModel($slug);
         try {
-            $transaction = Yii::$app->db->beginTransaction();
             if ($this->request->isPost) {
                 $comment = new PostComments();
                 $comment->post_id = $model->id;
@@ -256,7 +277,9 @@ class PostsController extends Controller
             return $this->redirect(['view', 'slug' => $model->slug]);
         } catch (Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Adding comment failed.");
+            return $this->redirect(['view', 'slug' => $model->slug]);
         }
     }
 
@@ -267,9 +290,9 @@ class PostsController extends Controller
      */
     public function actionReply($slug)
     {
+        $transaction = Yii::$app->db->beginTransaction();
         $model = $this->findModel($slug);
         try {
-            $transaction = Yii::$app->db->beginTransaction();
             if ($this->request->isPost) {
                 $reply = new PostCommentReplies();
                 $reply->comment_id = $this->request->post()['Posts']['comment_id'];
@@ -287,7 +310,9 @@ class PostsController extends Controller
             return $this->redirect(['view', 'slug' => $model->slug]);
         } catch (Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Adding reply failed.");
+            return $this->redirect(['view', 'slug' => $model->slug]);
         }
     }
 
@@ -298,9 +323,9 @@ class PostsController extends Controller
      */
     public function actionSubReply($slug)
     {
+        $transaction = Yii::$app->db->beginTransaction();
         $model = $this->findModel($slug);
         try {
-            $transaction = Yii::$app->db->beginTransaction();
             if ($this->request->isPost) {
                 $sub_reply = new SubReplies();
                 $sub_reply->reply_id = $this->request->post()['Posts']['reply_id'];
@@ -318,7 +343,9 @@ class PostsController extends Controller
             return $this->redirect(['view', 'slug' => $model->slug]);
         } catch (Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            Yii::error($e, __METHOD__);
+            Yii::$app->session->setFlash('error', "Some error occurred. Adding sub reply failed.");
+            return $this->redirect(['view', 'slug' => $model->slug]);
         }
     }
 }

@@ -31,12 +31,12 @@ class Posts extends \yii\db\ActiveRecord
         return 'posts';
     }
 
-    public $eventImage;
+    public $categories;
+    public $image;
 
     public function behaviors()
     {
         return [
-            // TimestampBehavior::class,
             [
                 'class' => BlameableBehavior::class,
                 'updatedByAttribute' => false
@@ -66,7 +66,9 @@ class Posts extends \yii\db\ActiveRecord
             [['title', 'slug'], 'unique'],
             [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
             [['status'], 'required'],
-            // [['image'], 'file', 'skipOnEmpty' => false, 'maxFiles' => 5, 'extensions' => 'png, jpg, jpeg'],
+            [['categories'], 'required'],
+            ['image', 'required'],
+            [['image'], 'file', 'maxFiles' => 5, 'extensions' => 'png, jpg, jpeg'],
         ];
     }
 
@@ -95,13 +97,6 @@ class Posts extends \yii\db\ActiveRecord
     public function getCreatedBy()
     {
         return $this->hasOne(User::class, ['id' => 'created_by']);
-    }
-
-    /** Get all categories */
-    public function getCategories()
-    {
-        $listCategory = Categories::find()->select('id,title')->all();
-        return ArrayHelper::map( $listCategory,'id','title');
     }
 
     /** Get Images by post_id */
